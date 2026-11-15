@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AutenticacionRoles.Models;
 
@@ -12,13 +13,18 @@ public class PeliculasController : Controller
         _context = context;
     }
 
-    // GET: PELICULAS
-    public async Task<IActionResult> Index()    
+    // GET: Peliculas
+    // Muestra las películas con el nombre de su género.
+    public async Task<IActionResult> Index()
     {
-        return View(await _context.Pelicula.ToListAsync());
+        var peliculas = await _context.Pelicula
+            .Include(p => p.Genero)
+            .ToListAsync();
+
+        return View(peliculas);
     }
 
-    // GET: PELICULAS/Details/5
+    // GET: Peliculas/Details/5
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -27,7 +33,9 @@ public class PeliculasController : Controller
         }
 
         var pelicula = await _context.Pelicula
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .Include(p => p.Genero)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (pelicula == null)
         {
             return NotFound();
@@ -36,29 +44,39 @@ public class PeliculasController : Controller
         return View(pelicula);
     }
 
-    // GET: PELICULAS/Create
-    public IActionResult Create()
+    // GET: Peliculas/Create
+    public async Task<IActionResult> Create()
     {
+        await CargarGeneros();
         return View();
     }
 
-    // POST: PELICULAS/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    // POST: Peliculas/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Titulo,Director,Duracion")] Pelicula pelicula)
+    public async Task<IActionResult> Create(
+        [Bind("Titulo,Director,DuracionMinutos,GeneroId")] Pelicula pelicula)
     {
+        // Verificar que el género seleccionado exista.
+        if (!await _context.Genero.AnyAsync(g => g.Id == pelicula.GeneroId))
+        {
+            ModelState.AddModelError("GeneroId", "Debe seleccionar un género válido.");
+        }
+
         if (ModelState.IsValid)
         {
-            _context.Add(pelicula);
+            _context.Pelicula.Add(pelicula);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
+
+        // Volver a cargar los géneros si hay errores.
+        await CargarGeneros(pelicula.GeneroId);
         return View(pelicula);
     }
 
-    // GET: PELICULAS/Edit/5
+    // GET: Peliculas/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null)
@@ -67,23 +85,32 @@ public class PeliculasController : Controller
         }
 
         var pelicula = await _context.Pelicula.FindAsync(id);
+
         if (pelicula == null)
         {
             return NotFound();
         }
+
+        await CargarGeneros(pelicula.GeneroId);
         return View(pelicula);
     }
 
-    // POST: PELICULAS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    // POST: Peliculas/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? id, [Bind("Id,Titulo,Director,Duracion")] Pelicula pelicula)
+    public async Task<IActionResult> Edit(
+        int? id,
+        [Bind("Id,Titulo,Director,DuracionMinutos,GeneroId")] Pelicula pelicula)
     {
         if (id != pelicula.Id)
         {
             return NotFound();
+        }
+
+        // Verificar que el género seleccionado exista.
+        if (!await _context.Genero.AnyAsync(g => g.Id == pelicula.GeneroId))
+        {
+            ModelState.AddModelError("GeneroId", "Debe seleccionar un género válido.");
         }
 
         if (ModelState.IsValid)
@@ -104,12 +131,16 @@ public class PeliculasController : Controller
                     throw;
                 }
             }
+
             return RedirectToAction(nameof(Index));
         }
+
+        // Mantener los géneros disponibles si hay errores.
+        await CargarGeneros(pelicula.GeneroId);
         return View(pelicula);
     }
 
-    // GET: PELICULAS/Delete/5
+    // GET: Peliculas/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null)
@@ -118,7 +149,9 @@ public class PeliculasController : Controller
         }
 
         var pelicula = await _context.Pelicula
-            .FirstOrDefaultAsync(m => m.Id == id);
+            .Include(p => p.Genero)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (pelicula == null)
         {
             return NotFound();
@@ -127,23 +160,41 @@ public class PeliculasController : Controller
         return View(pelicula);
     }
 
-    // POST: PELICULAS/Delete/5
+    // POST: Peliculas/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int? id)
     {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
         var pelicula = await _context.Pelicula.FindAsync(id);
+
         if (pelicula != null)
         {
             _context.Pelicula.Remove(pelicula);
+            await _context.SaveChangesAsync();
         }
 
-        await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 
-    private bool PeliculaExists(int? id)
+    // Carga los géneros para la lista desplegable.
+    private async Task CargarGeneros(int? generoSeleccionado = null)
     {
-        return _context.Pelicula.Any(e => e.Id == id);
+        var generos = await _context.Genero
+            .OrderBy(g => g.Nombre)
+            .ToListAsync();
+
+        ViewData["GeneroId"] = new SelectList(
+            generos, "Id", "Nombre", generoSeleccionado);
+    }
+
+    // Verifica si existe una película.
+    private bool PeliculaExists(int id)
+    {
+        return _context.Pelicula.Any(p => p.Id == id);
     }
 }

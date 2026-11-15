@@ -1,0 +1,84 @@
+@model AutenticacionRoles.Models.Genero
+
+@{
+    ViewData["Title"] = "Eliminar género";
+
+    // Verificar si el género tiene películas relacionadas.
+    bool tienePeliculas = ViewBag.TienePeliculas == true;
+    string mensajeError = ViewBag.MensajeError as string;
+}
+
+<h1>Eliminar género</h1>
+
+<h4>Información del género</h4>
+<hr />
+
+<!-- Mostrar mensajes de error -->
+@if (!string.IsNullOrEmpty(mensajeError))
+{
+    <div class="alert alert-danger">
+        @mensajeError
+    </div>
+}
+
+<!-- Advertencia si existen películas relacionadas -->
+@if (tienePeliculas)
+{
+    <div class="alert alert-warning">
+        No se puede eliminar este género porque tiene
+        películas asociadas.
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        ¿Está seguro de que desea eliminar este género?
+    </div>
+}
+
+<!-- Datos del género -->
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Id)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Id)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Nombre)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Nombre)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Descripcion)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Descripcion)
+        </dd>
+    </dl>
+</div>
+
+<!-- Formulario para confirmar la eliminación -->
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    @if (!tienePeliculas)
+    {
+        <input type="submit" value="Eliminar"
+               class="btn btn-danger" />
+    }
+    else
+    {
+        <button type="button" class="btn btn-danger" disabled>
+            Eliminar
+        </button>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Volver a la lista
+    </a>
+</form>
