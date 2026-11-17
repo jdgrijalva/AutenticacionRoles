@@ -1,9 +1,11 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using AutenticacionRoles.Models;
 
+[Authorize]
 public class PeliculasController : Controller
 {
     private readonly AutenticacionRolesContext _context;
@@ -14,7 +16,7 @@ public class PeliculasController : Controller
     }
 
     // GET: Peliculas
-    // Muestra las películas con el nombre de su género.
+    [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         var peliculas = await _context.Pelicula
@@ -25,6 +27,7 @@ public class PeliculasController : Controller
     }
 
     // GET: Peliculas/Details/5
+    [AllowAnonymous]
     public async Task<IActionResult> Details(int? id)
     {
         if (id == null)
@@ -57,7 +60,6 @@ public class PeliculasController : Controller
     public async Task<IActionResult> Create(
         [Bind("Titulo,Director,DuracionMinutos,GeneroId")] Pelicula pelicula)
     {
-        // Verificar que el género seleccionado exista.
         if (!await _context.Genero.AnyAsync(g => g.Id == pelicula.GeneroId))
         {
             ModelState.AddModelError("GeneroId", "Debe seleccionar un género válido.");
@@ -71,7 +73,6 @@ public class PeliculasController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // Volver a cargar los géneros si hay errores.
         await CargarGeneros(pelicula.GeneroId);
         return View(pelicula);
     }
@@ -107,7 +108,6 @@ public class PeliculasController : Controller
             return NotFound();
         }
 
-        // Verificar que el género seleccionado exista.
         if (!await _context.Genero.AnyAsync(g => g.Id == pelicula.GeneroId))
         {
             ModelState.AddModelError("GeneroId", "Debe seleccionar un género válido.");
@@ -135,7 +135,6 @@ public class PeliculasController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // Mantener los géneros disponibles si hay errores.
         await CargarGeneros(pelicula.GeneroId);
         return View(pelicula);
     }
@@ -181,7 +180,6 @@ public class PeliculasController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // Carga los géneros para la lista desplegable.
     private async Task CargarGeneros(int? generoSeleccionado = null)
     {
         var generos = await _context.Genero
@@ -192,7 +190,6 @@ public class PeliculasController : Controller
             generos, "Id", "Nombre", generoSeleccionado);
     }
 
-    // Verifica si existe una película.
     private bool PeliculaExists(int id)
     {
         return _context.Pelicula.Any(p => p.Id == id);
