@@ -21,6 +21,8 @@ Un cine necesita administrar su cartelera en línea mediante una aplicación web
 1. Clonar el repositorio desde GitHub: `https://github.com`
 2. Abrir la solución en Visual Studio y revisar en `appsettings.json` que la cadena de conexión apunte a `localhost\SQLEXPRESS`.
 3. Abrir la **Consola del Administrador de paquetes** y ejecutar las migraciones en ambos contextos:
+   - `Add-Migration -Context ApplicationContext`
+   - `Add-Migration -Context AutenticacionRolesContext`
    - `Update-Database -Context ApplicationContext`
    - `Update-Database -Context AutenticacionRolesContext`
 4. Ejecutar la aplicación con `F5`.

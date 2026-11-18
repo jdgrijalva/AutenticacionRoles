@@ -1,8 +1,10 @@
 
+using AutenticacionRoles.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AutenticacionRoles.Models;
 
+[Authorize(Roles = "Curador")]
 public class GenerosController : Controller
 {
     private readonly AutenticacionRolesContext _context;
