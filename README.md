@@ -1,4 +1,4 @@
-# Sistema de Cartelera de Cine (Grupo 3)
+# Sistema de Cartelera de Cine (Grupo 7)
 
 ## Problema Asignado
 Un cine necesita administrar su cartelera en línea mediante una aplicación web con base de datos, validaciones, relación uno a muchos entre **Genero** (entidad principal) y **Pelicula** (entidad dependiente), autenticación con Identity y control de acceso basado en roles (**Curador** y **Espectador**).
