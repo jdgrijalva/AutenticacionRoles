@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using AutenticacionRoles.Models;
 
-[Authorize]
+[Authorize(Roles = "Curador")]
 public class PeliculasController : Controller
 {
     private readonly AutenticacionRolesContext _context;
