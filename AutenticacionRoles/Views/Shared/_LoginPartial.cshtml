@@ -2,18 +2,18 @@
 @using AutenticacionRoles.Models
 
 @inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 
-<ul class="navbar-nav">
-    @if (SignInManager.IsSignedIn(User))
-    {
-        <li class="nav-item">
-            <a class="nav-link text-dark"
-               asp-area="Identity"
-               asp-page="/Account/Manage/Index">
-                Hola, @User.Identity?.Name
-            </a>
-        </li>
+@if (SignInManager.IsSignedIn(User))
+{
+    var rolTexto = User.IsInRole("Curador") ? "Curador" : (User.IsInRole("Espectador") ? "Espectador" : "Sin rol");
 
+
+    <li class="nav-item">
+        <span class="nav-link text-dark">Hola, @User.Identity?.Name (@rolTexto)</span>
+    </li>
+
+        
         <li class="nav-item">
             <form asp-area="Identity"
                   asp-page="/Account/Logout"
